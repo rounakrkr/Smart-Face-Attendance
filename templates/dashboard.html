@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Teacher Dashboard{% endblock %}
+
+{% block content %}
+<div class="container">
+    <header class="dashboard-header">
+        <h1>Smart Attendance Portal</h1>
+        <div class="header-actions">
+            <span>Welcome, {{ current_user.username }}</span>
+        </div>
+    </header>
+
+    <!-- Session control bar -->
+    <div class="session-bar">
+        <div class="status-wrapper">
+            <span class="status-label">Session:</span>
+            <span id="statusIndicator" class="status-indicator">Checking...</span>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+            <button id="startBtn" onclick="startAttendance()">Start Attendance</button>
+            <button id="stopBtn" onclick="stopAttendance()" style="display: none;">Stop Attendance</button>
+            <button id="finalizeBtn" onclick="finalizeClass()">Finalize Class</button>
+        </div>
+    </div>
+
+    <!-- Summary cards -->
+    <div class="cards">
+        <div class="card">
+            <h3>Total Students</h3>
+            <p id="totalStudents">0</p>
+        </div>
+        <div class="card">
+            <h3>Present Today</h3>
+            <p id="presentToday">0</p>
+        </div>
+        <div class="card">
+            <h3>Detention Risk</h3>
+            <p id="detentionRisk">0</p>
+        </div>
+        <div class="card">
+            <h3>Intervention Needed</h3>
+            <p id="earlyWarning">0</p>
+        </div>
+    </div>
+
+    <!-- Recent attendance log -->
+    <div class="log-panel">
+        <h3>Recent Attendance</h3>
+        <div id="attendanceLog" class="log-content">
+            <p>No attendance marked today yet.</p>
+        </div>
+    </div>
+
+    <!-- Attendance table -->
+    <div class="table-wrapper">
+        <table id="attendanceTable">
+            <thead>
+                <tr>
+                    <th>Roll No</th>
+                    <th>Name</th>
+                    <th>Present</th>
+                    <th>Total</th>
+                    <th>Attendance %</th>
+                    <th>Status</th>
+                    <th>Intervention</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% endblock %}

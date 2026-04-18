@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block title %}Register Student{% endblock %}
+
+{% block extra_css %}
+<style>
+    body .main-content .container {
+        max-width: 600px;
+    }
+    .form-group { margin-bottom: 1rem; }
+    label { display: block; font-weight: 600; margin-bottom: 0.3rem; color: #4a5568; }
+    input[type="text"], select { width: 100%; padding: 0.6rem; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; box-sizing: border-box; }
+    video, canvas { width: 100%; max-width: 320px; border: 1px solid #ccc; border-radius: 6px; display: block; margin: 0 auto 0.8rem auto; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    button { background: #2d89ff; color: white; border: none; padding: 0.7rem 1.8rem; border-radius: 6px; cursor: pointer; font-size: 1rem; font-weight: 600; }
+    button:hover { background: #1f6fd6; }
+    button:disabled { background: #aaa; cursor: not-allowed; }
+    #status { margin-top: 1.2rem; padding: 0.8rem; border-radius: 6px; font-size: 0.95rem; }
+    .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Student Registration</h1>
+    <form id="registerForm">
+        <div class="form-group">
+            <label for="roll_no">Roll Number:</label>
+            <input type="text" id="roll_no" name="roll_no" required>
+        </div>
+        <div class="form-group">
+            <label for="name">Full Name:</label>
+            <input type="text" id="name" name="name" required>
+        </div>
+        <div class="form-group">
+            <label for="class_id">Class:</label>
+            <select id="class_id" name="class_id" required>
+                <option value="">-- Select class --</option>
+                {% for class in classes %}
+                <option value="{{ class.class_id }}">{{ class.class_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Camera Preview:</label>
+            <video id="video" autoplay playsinline muted></video>
+            <canvas id="canvas" style="display:none;"></canvas>
+        </div>
+        <button type="button" id="captureBtn">Capture & Register</button>
+    </form>
+    <div id="status"></div>
+</div>
+
+<script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const captureBtn = document.getElementById('captureBtn');
+    const statusDiv = document.getElementById('status');
+
+    let stream = null;
+    let cameraReady = false;
+
+    async function startCamera() {
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            video.srcObject = stream;
+            await new Promise((resolve) => {
+                video.onloadedmetadata = () => {
+                    video.play();
+                    resolve();
+                };
+            });
+            cameraReady = true;
+            statusDiv.innerHTML = '<div>✅ Camera ready</div>';
+            setTimeout(() => statusDiv.innerHTML = '', 2000);
+        } catch (err) {
+            console.error('Camera error:', err);
+            statusDiv.innerHTML = '<div class="error">Cannot access camera. Please allow permissions.</div>';
+            cameraReady = false;
+        }
+    }
+    startCamera();
+
+    captureBtn.addEventListener('click', async () => {
+        if (!cameraReady) {
+            statusDiv.innerHTML = '<div class="error">Camera not ready. Please refresh and allow camera access.</div>';
+            return;
+        }
+
+        const roll_no = document.getElementById('roll_no').value.trim();
+        const name = document.getElementById('name').value.trim();
+        const class_id = document.getElementById('class_id').value;
+
+        if (!roll_no || !name || !class_id) {
+            statusDiv.innerHTML = '<div class="error">Please fill all fields and select a class.</div>';
+            return;
+        }
+
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imageData = canvas.toDataURL('image/jpeg');
+
+        captureBtn.disabled = true;
+        statusDiv.innerHTML = '<div>Processing...</div>';
+
+        try {
+            const response = await fetch('/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ roll_no, name, class_id, image: imageData })
+            });
+            const result = await response.json();
+            if (result.success) {
+                statusDiv.innerHTML = `<div class="success">${result.message}<br>Login: ${result.login_credentials.username} / ${result.login_credentials.password}</div>`;
+                document.getElementById('registerForm').reset();
+            } else {
+                statusDiv.innerHTML = `<div class="error">${result.error}</div>`;
+            }
+        } catch (err) {
+            console.error('Fetch error:', err);
+            statusDiv.innerHTML = `<div class="error">Network error: ${err.message}</div>`;
+        } finally {
+            captureBtn.disabled = false;
+        }
+    });
+
+    window.addEventListener('beforeunload', () => {
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+        }
+    });
+</script>
+{% endblock %}

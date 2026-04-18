@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Smart Attendance{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <button class="hamburger" id="hamburger">☰</button>
+    <div class="overlay" id="overlay"></div>
+
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2>Attendance Portal</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    {% if current_user.is_authenticated %}
+                        {% if current_user.role == 'teacher' or current_user.role == 'admin' %}
+                            <li><a href="/">Dashboard</a></li>
+                            <li><a href="/register">Register Student</a></li>
+                        {% endif %}
+                        {% if current_user.role == 'student' %}
+                            <li><a href="/student">My Dashboard</a></li>
+                            <li><a href="/student/profile">Change Password</a></li>
+                        {% endif %}
+                        {% if current_user.role == 'admin' %}
+                            <li><a href="/admin">Admin Panel</a></li>
+                            <li><a href="/admin/add_user">Add User</a></li>
+                        {% endif %}
+                        <li><a href="/logout">Logout</a></li>
+                    {% else %}
+                        <li><a href="/login">Login</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

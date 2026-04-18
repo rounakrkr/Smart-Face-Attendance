@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Student Dashboard{% endblock %}
+
+{% block content %}
+<div class="student-container">
+    <div class="student-header">
+        <h1>Student Attendance Portal</h1>
+    </div>
+
+    <div class="card">
+        <h2>Welcome, {{ student.name }}</h2>
+        <p>Roll No: {{ student.roll_no }} | Class: {{ student.class_name }}</p>
+    </div>
+
+    <div class="card">
+        <h3>Attendance Summary</h3>
+        <div class="info-grid">
+            <div class="info-item">
+                <h3>Present Classes</h3>
+                <p>{{ summary.present_classes }}</p>
+            </div>
+            <div class="info-item">
+                <h3>Total Classes</h3>
+                <p>{{ summary.total_classes }}</p>
+            </div>
+            <div class="info-item">
+                <h3>Attendance %</h3>
+                <p>{{ summary.attendance_percentage }}%</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="card attendance-history">
+        <h3>Attendance History</h3>
+         <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in records %}
+                <tr>
+                    <td>{{ record.date }}</td>
+                    <td>{{ record.time_str }}</td>
+                    <td class="{{ 'present' if record.status == 'Present' else 'absent' }}">{{ record.status }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="3">No attendance records found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
